@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 import boto3
 import requests
 
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -65,7 +64,7 @@ def lambda_handler(event, context):
         response.raise_for_status()
         data = response.json()
     except Exception as e:
-        logger.error(f"Failed to fetch Open-Meteo data: {e}")
+        logger.error(f"Failed to fetch Open-Meteo Data: {e}")
         return {
             "statusCode": 500,
             "body": json.dumps({"status": "failed", "error": str(e)})
@@ -78,7 +77,7 @@ def lambda_handler(event, context):
         logger.warning("No current weather data returned")
         return {
             "statusCode": 200,
-            "body": json.dumps({"status": "skipped", "reason": "no current data"})
+            "body": json.dumps({"status": "skipped", "reason": "No current data."})
         }
 
     item = {
@@ -119,7 +118,7 @@ def lambda_handler(event, context):
         ContentType="application/json"
     )
 
-    logger.info("Weather ingest completed successfully")
+    logger.info("Weather ingest completed successfully!")
 
     return {
         "statusCode": 200,

@@ -74,8 +74,7 @@ def trend():
     avg = sum(temps) / len(temps)
     change = latest - first
 
-    return {
-        "response": f"Across {len(items)} samples, since April 29, 2026, the average temperature has been {avg:.2f}°C and changed by {change:.2f}°C."
+    return {"response": f"Across {len(items)} samples, since April 29, 2026, the average temperature has been {avg:.2f}°C and changed by {change:.2f}°C."
     }
 
 # use quickstart instead of matplotlib because it hangs 
