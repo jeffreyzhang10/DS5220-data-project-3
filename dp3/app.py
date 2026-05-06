@@ -47,9 +47,29 @@ def get_items():
 
 @app.route("/")
 def index():
-    return {
-        "about": "Tracks Boston weather information via Open-Meteo. Includes information about current conditions, trends, and plots.",
-        "resources": ["current", "trend", "plot", "recent", "feels"]}
+
+    logger.info("GET / called")
+
+    try:
+        response = {
+            "about": (
+                "Tracks Boston weather information via Open-Meteo. "
+                "Includes information about current conditions, trends, and plots."
+            ),
+            "resources": ["current", "trend", "plot", "recent", "feels"]
+        }
+
+        logger.info(f"Returning API response: {response}")
+
+        return response
+
+    except Exception as e:
+        logger.exception(f"Unexpected error in / route: {e}")
+
+        return {
+            "about": "Boston weather API temporarily unavailable.",
+            "resources": []
+        }
 
 
 @app.route("/current")
@@ -76,7 +96,7 @@ def current():
 def trend():
 
     logger.info("GET /trend called")
-    
+
     items = get_items()
 
     if len(items) < 2:
@@ -98,6 +118,8 @@ def plot():
     logger.info("GET /plot called")
 
     items = get_items()
+
+    logger.info(f"Retrieved {len(items)} weather records for plotting")
 
     if len(items) < 2:
         return {"response": "Not enough data to generate a plot yet."}
@@ -127,6 +149,8 @@ def plot():
         }
     }
 
+    logger.info("Sending chart request to QuickChart!")
+
     response = requests.get(
         "https://quickchart.io/chart",
         params={
@@ -142,6 +166,8 @@ def plot():
 
     s3_key = "weather/plots/latest.png"
     s3 = boto3.client("s3", region_name="us-east-1")
+
+    logger.info(f"Uploading plot to s3://{BUCKET_NAME}/{s3_key}")
 
     s3.put_object(
         Bucket = BUCKET_NAME,
