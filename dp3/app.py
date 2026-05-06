@@ -74,6 +74,9 @@ def current():
 
 @app.route("/trend")
 def trend():
+
+    logger.info("GET /trend called")
+    
     items = get_items()
 
     if len(items) < 2:
@@ -91,6 +94,9 @@ def trend():
 # use quickstart instead of matplotlib because it hangs 
 @app.route("/plot")
 def plot():
+
+    logger.info("GET /plot called")
+
     items = get_items()
 
     if len(items) < 2:
@@ -148,37 +154,95 @@ def plot():
 
 @app.route("/recent")
 def latest_delta():
-    items = get_items()
 
-    if len(items) < 2:
-        return {"response": "Not enough data to compute change."}
+    logger.info("GET /recent called")
 
-    # last two readings
-    prev = items[-2]
-    curr = items[-1]
+    try:
+        items = get_items()
 
-    prev_temp = float(prev["temperature_c"])
-    curr_temp = float(curr["temperature_c"])
+        logger.info(f"Retrieved {len(items)} weather records")
 
-    change = curr_temp - prev_temp
+        if len(items) < 2:
+            logger.warning("Not enough data to compute recent temperature change")
+            return {"response": "Not enough data to compute change."}
 
-    return {"response": f"Temperature has changed by {change:.2f}°C since the last sample."}
+        # last two readings
+        prev = items[-2]
+        curr = items[-1]
+
+        prev_temp = float(prev["temperature_c"])
+        curr_temp = float(curr["temperature_c"])
+
+        change = curr_temp - prev_temp
+
+        #logger.info(
+         #   f"Previous temp: {prev_temp}°C | "
+        #    f"Current temp: {curr_temp}°C | "
+        #    f"Change: {change:.2f}°C"
+        #)
+
+        return {"response": f"Temperature has changed by {change:.2f}°C since the last sample."}
+
+    except KeyError as e:
+        logger.error(f"Missing expected field in DynamoDB item: {e}")
+        return {"response": "Weather data is missing required fields."}
+
+    except ValueError as e:
+        logger.error(f"Temperature conversion failed: {e}")
+        return {"response": "Failed to process temperature values."}
+
+    except Exception as e:
+        logger.exception(f"Unexpected error in /recent route: {e}")
+        return {"response": "An unexpected error occurred while computing recent weather changes."}
 
 @app.route("/feels")
 def feels():
-    items = get_items()
 
-    if not items:
-        return {"response": "No Boston weather data collected yet."}
+    logger.info("GET /feels called")
 
-    latest = items[-1]
+    try:
+        items = get_items()
 
-    temp = to_float(latest.get("temperature_c"))
-    feels_like = latest.get("feels_like", None)
+        logger.info(f"Retrieved {len(items)} weather records")
 
-    if feels_like is None:
-        return {"response": "Feels-like temperature not available yet."}
+        if not items:
+            logger.warning("No Boston weather data available yet")
+            return {"response": "No Boston weather data collected yet."}
 
-    feels_like = to_float(feels_like)
+        latest = items[-1]
 
-    return {"response": f"It currently feels like {feels_like}°C in Boston, even though it is actually {temp}°C."}
+        temp = to_float(latest.get("temperature_c"))
+        feels_like = latest.get("feels_like", None)
+
+        logger.info(f"Raw temperature: {temp}")
+        logger.info(f"Raw feels-like temperature: {feels_like}")
+
+        if feels_like is None:
+            logger.warning("Feels-like temperature missing from latest record")
+            return {"response": "Feels-like temperature not available yet."}
+
+        feels_like = to_float(feels_like)
+
+        logger.info(
+            f"Processed temperatures | "
+            f"Actual: {temp}°C | Feels-like: {feels_like}°C"
+        )
+
+        return {
+            "response": (
+                f"It currently feels like {feels_like}°C in Boston, "
+                f"even though it is actually {temp}°C."
+            )
+        }
+
+    except KeyError as e:
+        logger.error(f"Missing expected field in DynamoDB item: {e}")
+        return {"response": "Weather data is missing required fields."}
+
+    except ValueError as e:
+        logger.error(f"Temperature conversion failed: {e}")
+        return {"response": "Failed to process feels like temperature values."}
+
+    except Exception as e:
+        logger.exception(f"Unexpected error in /feels route: {e}")
+        return {"response": "An unexpected error occurred while retrieving feelslike information."}
