@@ -5,7 +5,14 @@
 ### Overview 
 
 Data Source: Open Mateo Weather API
+
 Data Source Reasoning: As I am working on this project, I am also preparing to move out of my apartment in Charlottesville for potentially the last time. Perhaps the thing I might miss most is the weather, and in particular, how early it warms up in the spring. Although it is rather cold, comparatively speaking, as of the week of April 28th, 2026, it is and is much colder back home up in Boston, MA. For example, it is probably 10 degrees F warmer on average here. Among other reasons, I used Open Mateo's API due to familiarity with the data and the lack of an API key needed to pull data accordingly. 
+
+## Deploy
+
+- **API URL:** https://gp0y3z579a.execute-api.us-east-1.amazonaws.com/api/ 
+- **Discord project ID:** `bostonweather`
+- **DynamoDB:** Table `dp3-table`, partition key `city`, sort key `timestamp`
 
 ## Data Ingestion 
 
@@ -30,6 +37,8 @@ Each record is stored as a JSON object with the following structure:
   "feels_like": "number (°C)"
 }
 ```
+
+The table uses `city` as the partition key and `timestamp` as the sort key. 
 
 ## API Resources
 

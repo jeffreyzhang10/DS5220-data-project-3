@@ -36,7 +36,6 @@ def weather_code(code):
     }
     return mapping.get(code, "Unknown")
 
-
 def lambda_handler(event, context):
     table_name = os.environ.get("DYNAMO_TABLE", "dp3-table")
     bucket_name = os.environ.get("S3_BUCKET", "bkf4cy-dp3-bucket")
@@ -95,7 +94,7 @@ def lambda_handler(event, context):
         }
 
     logger.info(f"Writing item to DynamoDB table {table_name}")
-    table.put_item(Item=item)
+    table.put_item(Item = item)
 
     s3_key = f"weather/raw/{city.lower()}-{run_id}.json"
 
@@ -106,8 +105,8 @@ def lambda_handler(event, context):
             "source": "open-meteo",
             "raw_response": data
         },
-        default=str,
-        indent=2
+        default = str,
+        indent = 2
     )
 
     logger.info(f"Writing raw data to s3://{bucket_name}/{s3_key}")

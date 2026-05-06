@@ -13,6 +13,10 @@ import requests
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 app = Chalice(app_name = "boston-weather-api")
 
 TABLE_NAME = "dp3-table"
@@ -30,11 +34,15 @@ def to_float(x):
 
 
 def get_items():
-    response = table.query(
-        KeyConditionExpression=Key("city").eq(CITY),
-        ScanIndexForward=True
-    )
-    return response.get("Items", [])
+    try:
+        response = table.query(
+            KeyConditionExpression=Key("city").eq(CITY),
+            ScanIndexForward=True
+        )
+        return response.get("Items", [])
+    except Exception as e:
+        logger.error(f"DynamoDB query failed: {e}")
+        return []
 
 
 @app.route("/")
@@ -46,6 +54,9 @@ def index():
 
 @app.route("/current")
 def current():
+
+    logger.info("GET /current called")
+
     items = get_items()
 
     if not items:
